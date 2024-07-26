@@ -28,12 +28,10 @@ class PersonServicesTest {
     private PersonServices service;
 
     private Person person;
-    private Person person2;
 
     @BeforeEach
     void setup() {
         person = new Person("Kiev", "Maia", "kievmaia@gmail.com", "São José - SC - Brasil", "Male");
-        person2 = new Person("Kiev", "Maia", "kievmaia@gmail.com", "São José - SC - Brasil", "Male");
     }
 
     @DisplayName("JUnit test for Given Person Save Person Then Return Person")
@@ -51,6 +49,7 @@ class PersonServicesTest {
         assertEquals(person.getFirstName(), savedPerson.getFirstName());
     }
 
+    @DisplayName("JUnit test for Given Duplicate Person Email When Save Then Return Person")
     @Test
     public void create_whenEmailAlreadyExists_throwsException() {
         given(repository.findByEmail(person.getEmail())).willReturn(Optional.of(person));
