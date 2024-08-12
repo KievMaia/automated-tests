@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  postgres:
+    restart: always
+    image: postgres:15.4-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: rest_with_spring_boot_erudio
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
