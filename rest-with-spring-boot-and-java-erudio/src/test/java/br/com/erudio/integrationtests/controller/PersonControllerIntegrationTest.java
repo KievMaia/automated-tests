@@ -14,6 +14,7 @@ import org.testcontainers.shaded.com.fasterxml.jackson.databind.DeserializationF
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.*;
@@ -79,7 +80,7 @@ public class PersonControllerIntegrationTest extends AbstractIntegrationTest {
         assertEquals("johndoe@example.com", createdPerson.getEmail());
     }
 
-    @Order(1)
+    @Order(2)
     @DisplayName("JUnit integration given Person Object when Update Person should return a Person Object Updated")
     @Test
     void integrationTest_when_UpdatePerson_ShouldReturnAPersonObjectUpdated() throws IOException {
@@ -110,20 +111,83 @@ public class PersonControllerIntegrationTest extends AbstractIntegrationTest {
         assertNotEquals("John Doe", updated.getFirstName());
     }
 
-    @Order(1)
+    @Order(3)
     @DisplayName("JUnit integration given Person Id when Find Person by Id should return a Person Object")
     @Test
     void integrationTest_when_FindPersonById_ShouldReturnAPersonObject() throws IOException {
         var content = given().spec(specification)
-                .contentType(TestConfigs.CONTENT_TYPE_JSON)
-                .body(person)
+                .pathParam("id", person.getId())
                 .when()
-                .get(person.getId().toString())
+                .get("{id}")
                 .then()
                 .statusCode(200)
                 .extract()
-                .body().asString();
+                .body()
+                .asString();
+
+        var foundPerson = objectMapper.readValue(content, Person.class);
 
         assertNotNull(content);
+        assertNotNull(foundPerson.getId());
+        assertNotNull(foundPerson.getFirstName());
+        assertNotNull(foundPerson.getLastName());
+        assertNotNull(foundPerson.getGender());
+        assertNotNull(foundPerson.getEmail());
+        assertNotNull(foundPerson.getAddress());
+
+        assertTrue(foundPerson.getId() > 0);
+        assertEquals("Jhonny", foundPerson.getFirstName());
+        assertEquals("Doe", foundPerson.getLastName());
+        assertEquals("Male", foundPerson.getGender());
+        assertEquals("123 Street, City, State, Country", foundPerson.getAddress());
+        assertEquals("joe@bol.com.br", foundPerson.getEmail());
+    }
+
+
+    @Order(4)
+    @DisplayName("JUnit integration given Person when FindAll Person should return a Person List")
+    @Test
+    void integrationTest_when_FindAll_ShouldReturnAPersonList() throws IOException {
+        var anotherPerson = new Person(
+                "Kênia",
+                "Rosa",
+                "keniareginarosa@example.com",
+                "São José - Areias - SC - Brasil",
+                "Female");
+
+        given().spec(specification)
+                .contentType(TestConfigs.CONTENT_TYPE_JSON)
+                .body(anotherPerson)
+                .when()
+                .post()
+                .then()
+                .statusCode(200);
+
+        var content = given().spec(specification)
+                .when()
+                .get()
+                .then()
+                .statusCode(200)
+                .extract()
+                .body()
+                .asString();
+
+        var people = Arrays.asList(objectMapper.readValue(content, Person[].class));
+
+        assertNotNull(content);
+        assertTrue(people.size() > 1);
+        assertEquals(people.size(), 2);
+    }
+
+    @Order(5)
+    @DisplayName("JUnit integration given Person Id when delete a Person should Delete a Person")
+    @Test
+    void integrationTest_when_DeletePerson_ShouldDeleteAPerson() throws IOException {
+        given().spec(specification)
+                .pathParam("id", person.getId())
+                .when()
+                .delete("{id}")
+                .then()
+                .statusCode(204);
     }
 }
